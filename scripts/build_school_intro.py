@@ -16,6 +16,7 @@ with urllib.request.urlopen(bio_url, timeout=45) as response:
 
 # This exact bundled three.js engine and school/portrait model come from the
 # user's own biology site. Both are embedded into the chemistry HTML.
+print('BIO SRC',len(biology),'start',repr(biology[:80]),'LICENSE_POS',biology.find('MIT License'),'BIOLOGY_3D',biology.find('Biology3D'),'SCRIPT_MARKERS',biology.find('<script>'),biology.find('</script>'))
 engine_start = biology.find('/* The MIT License')
 if engine_start < 0:
     raise RuntimeError("Could not find bundled 3D library license; refusing to change site")
