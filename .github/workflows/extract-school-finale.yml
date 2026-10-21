@@ -1,0 +1,35 @@
+name: Extract school finale implementation
+on:
+  push:
+    paths:
+      - '.github/workflows/extract-school-finale.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract school scene sources
+        run: |
+          python3 - <<'PY'
+          import urllib.request,re,pathlib
+          u='https://raw.githubusercontent.com/mustafaseyhan099-art/Mustafa-seyhan-biyoloji-projesi/main/index.html'
+          with urllib.request.urlopen(u,timeout=30) as r: lines=r.read().decode('utf8').splitlines()
+          out=[]
+          for a,b in [(105,145),(4528,4610),(4755,4812)]:
+           out+=['\\n========== '+str(a)+' - '+str(b)+' ==========']
+           for i in range(a-1,b):
+            line=lines[i]
+            line=re.sub(r'data:(image|audio|font)/[^;]+;base64,[A-Za-z0-9+/=]+','[EMBEDDED_BASE64_RESOURCE]',line)
+            if len(line)>2400:line=line[:1500]+'... [TRUNCATED] ... '+line[-300:]
+            out.append(str(i+1)+': '+line)
+          pathlib.Path('biology_school_source_excerpt.txt').write_text('\\n'.join(out),encoding='utf8')
+          PY
+      - name: Commit source excerpt
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add biology_school_source_excerpt.txt
+          git diff --cached --quiet || (git commit -m "Inspect actual school scene implementation" && git push)
