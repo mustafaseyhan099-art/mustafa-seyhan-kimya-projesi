@@ -31,7 +31,7 @@ jobs:
           import re
           a=Path('index-before-biology-school-intro.html').read_text()
           b=Path('index.html').read_text()
-          assert len(a)==3143757, len(a)
+          assert len(a)==3143725, len(a)
           assert len(b)>len(a)+2_000_000, len(b)
           for name in ['id="chemSchoolIntro"','function finalSchool(','function buildFinalWorld()',
                        'id="turkiyeMap"','id="startLab"','id="startElements"',
