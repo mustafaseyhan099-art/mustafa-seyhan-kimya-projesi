@@ -1,0 +1,68 @@
+name: Smoke test chemistry 3D intro
+on:
+  push:
+    paths: ['.github/workflows/test-chemistry-intro.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect available browsers and JavaScript syntax
+        run: |
+          command -v google-chrome || true
+          command -v chromium || true
+          python3 - <<'PY'
+          from pathlib import Path
+          import re,subprocess
+          s=Path('index.html').read_text()
+          for tag in ['chem-school-bundled-three','chem-school-intro-3d']:
+            p=re.search(r'<script[^>]*id="'+tag+r'"[^>]*>(.*?)</script>',s,re.S)
+            assert p,tag
+            f=Path('/tmp/'+tag+'.js')
+            f.write_text(p.group(1))
+            with f.open('rb') as script:
+              command=['node','--check']
+              if tag=='chem-school-intro-3d': command+=['--input-type=module']
+              out=subprocess.run(command,input=script.read(),stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+              print(tag,'syntax exit',out.returncode,out.stderr.decode()[:2500])
+              assert out.returncode==0,tag
+          PY
+      - name: Install browser controller
+        run: npm install --no-save playwright-core
+      - name: Test that intro renders, and lab button responds
+        run: |
+          cat > /tmp/intro-test.cjs <<'JS'
+          const {chromium}=require(process.cwd()+'/node_modules/playwright-core');
+          (async()=>{
+           const path=require('child_process').execSync('which google-chrome || which chromium || which chromium-browser',{encoding:'utf8'}).trim();
+           const browser=await chromium.launch({executablePath:path,headless:true,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader']});
+           try {
+             const page=await browser.newPage({viewport:{width:1280,height:760}});
+             const errors=[];
+             page.on('pageerror',e=>errors.push(e.message));
+             await page.goto('file://'+process.cwd()+'/index.html',{waitUntil:'domcontentloaded',timeout:25000});
+             await page.waitForTimeout(6500);
+             const info=await page.evaluate(()=>({
+               intro:!!document.getElementById('chemSchoolIntro'),
+               canvas:document.getElementById('chemSchoolCanvas')?.width,
+               height:document.getElementById('chemSchoolCanvas')?.height,
+               engine:!!globalThis.Biology3D,
+               school:document.getElementById('chemSchoolExplore')?.textContent,
+               lab:!!document.getElementById('startLab'),
+               map:!!document.getElementById('turkiyeMap')
+             }));
+             console.log('INTRO STATE:',JSON.stringify(info),'ERRORS:',JSON.stringify(errors.slice(0,10)));
+             if(!info.intro || !info.engine || !info.canvas || !info.school || !info.lab || !info.map)process.exitCode=1;
+             await page.locator('#chemSchoolExplore').click({timeout:5000});
+             await page.waitForTimeout(1200);
+             const gone=await page.locator('#chemSchoolIntro').count()===0;
+             console.log('LAB CLICK WORKS, INTRO HIDDEN:',gone);
+             if(!gone) process.exitCode=1;
+             if(errors.some(e=>e.includes('ReferenceError')||e.includes('SyntaxError')))process.exitCode=1;
+           } finally {await browser.close()}
+          })().catch(e=>{console.error(e);process.exit(1)});
+          JS
+          node /tmp/intro-test.cjs
