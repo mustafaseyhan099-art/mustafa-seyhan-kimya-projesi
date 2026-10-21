@@ -1,0 +1,54 @@
+name: Integrate offline Turkey map
+on:
+  push:
+    paths:
+      - '.github/workflows/integrate-map.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Merge offline map into chemistry homepage
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, json
+          main=Path('index.html')
+          mapfile=Path('turkiye-element-haritasi.html')
+          s=main.read_text(encoding='utf-8')
+          m=mapfile.read_text(encoding='utf-8')
+          match=re.search(r'const geo=(\{.*?\});const names=',m,re.S)
+          if not match: raise SystemExit('Embedded map data not found; refusing to overwrite')
+          geo=match.group(1)
+          data=json.loads(geo)
+          assert len(data['features'])==81
+          if 'const geoSources=' not in s: raise SystemExit('Expected map loader not found; refusing to overwrite')
+          # Preserve the original chemistry site, 3D laboratory and all other sections.
+          s=s.replace("const geoSources=[url,'https://cdn.jsdelivr.net/gh/theaiagent/turkiye_iller_geojson@main/turkiye_iller.geojson','https://raw.githack.com/theaiagent/turkiye_iller_geojson/main/turkiye_iller.geojson'];", "const embeddedProvinceGeo="+geo+";")
+          start=s.index('async function loadMap(){',s.index('const embeddedProvinceGeo='))
+          end=s.index('\nloadMap();',start)
+          s=s[:start]+"""function loadMap(){
+           try{
+            const data=embeddedProvinceGeo;
+            if(!Array.isArray(data.features)||data.features.length!==81)throw Error('81 il bulunamadı');
+            features=data.features;
+            setMode('elements');
+            if(layer.querySelectorAll('path').length<81)throw Error('İl çizimleri oluşturulamadı');
+            toggleFull(true);
+           }catch(e){
+            info.innerHTML='<h3>Harita hatası</h3><p>'+String(e.message||e)+'</p>';
+           }
+          }"""+s[end:]
+          assert 'embeddedProvinceGeo=' in s and 'fetch(source' not in s
+          main.write_text(s,encoding='utf-8')
+          print('Merged',len(data['features']),'provinces into',len(s),'characters')
+          PY
+      - name: Commit updated homepage
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || (git commit -m "Integrate offline province map into Atom Lab homepage" && git push)
