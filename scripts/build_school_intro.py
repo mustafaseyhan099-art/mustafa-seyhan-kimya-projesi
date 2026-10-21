@@ -16,10 +16,13 @@ with urllib.request.urlopen(bio_url, timeout=45) as response:
 
 # This exact bundled three.js engine and school/portrait model come from the
 # user's own biology site. Both are embedded into the chemistry HTML.
-engine_match = re.search(r'<script>(/\* The MIT License[\s\S]*?)</script>', biology)
-if not engine_match:
-    raise RuntimeError("Could not find biology 3D library; refusing to change site")
-engine = engine_match.group(1)
+engine_start = biology.find('/* The MIT License')
+if engine_start < 0:
+    raise RuntimeError("Could not find bundled 3D library license; refusing to change site")
+engine_end = biology.find('</script>', engine_start)
+if engine_end < 0:
+    raise RuntimeError("Could not find end of bundled 3D library")
+engine = biology[engine_start:engine_end]
 if "Biology3D" not in engine or "OrbitControls" not in engine:
     raise RuntimeError("Unexpected 3D library format")
 start = biology.index("// Existing 3D school, with the approved 2D portrait")
