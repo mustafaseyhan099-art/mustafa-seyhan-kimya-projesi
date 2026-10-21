@@ -1,36 +1,57 @@
-name: Build chemistry intro from biology finale
+name: Build original 3D school and latest chemistry map
 on:
   workflow_dispatch:
   push:
     paths:
       - '.github/workflows/build-chemistry-intro.yml'
       - 'scripts/build_school_intro.py'
+      - 'scripts/restore_latest_map.py'
+      - 'scripts/latest-map-suffix.htmlpart'
+      - 'scripts/enhance_original_school.py'
 permissions:
   contents: write
+concurrency:
+  group: chemistry-school-build
+  cancel-in-progress: false
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Embed original 3D school, portrait, and flag into chemistry site
+      - name: Restore user provided expanded Turkey map
+        run: python3 scripts/restore_latest_map.py
+      - name: Embed original biology 3D school and Mustafa
         run: python3 scripts/build_school_intro.py
-      - name: Verify merged project
+      - name: Add actual animated 3D workshops and multilingual slides
+        run: python3 scripts/enhance_original_school.py
+      - name: Verify JavaScript syntax and preservation of chemistry features
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           a=Path('index-before-biology-school-intro.html').read_text()
           b=Path('index.html').read_text()
-          assert len(b)>len(a)+200000
-          assert 'id="chemSchoolIntro"' in b
-          assert 'function finalSchool(' in b
-          assert 'id="turkiyeMap"' in b
-          assert 'id="startLab"' in b
-          assert 'data:image/png;base64,' in b
-          print('Verified chemistry laboratory, existing Turkey map and original biology 3D school')
+          assert len(a)==3143757, len(a)
+          assert len(b)>len(a)+2_000_000, len(b)
+          for name in ['id="chemSchoolIntro"','function finalSchool(','function buildFinalWorld()',
+                       'id="turkiyeMap"','id="startLab"','id="startElements"',
+                       'id="languagePicker"','id="slideLaunch"','id="atomSlideShow"',
+                       'const mechanics=workStation','const turbine=workStation','const mechatronics=workStation',
+                       'data:image/png;base64,']:
+              assert name in b, name
+          def get_script(id):
+              m=re.search(r'<script[^>]+id="'+re.escape(id)+r'"[^>]*>(.*?)</script>',b,re.S)
+              assert m,id
+              return m.group(1)
+          Path('/tmp/chem-scene.mjs').write_text(get_script('chem-school-intro-3d'))
+          Path('/tmp/chem-slides.js').write_text(get_script('atom-lab-slides-controller'))
+          print('Preserved final Turkey map, elements, original school and 3 animated 3D workshop models')
           PY
-      - name: Commit new homepage
+          node --check /tmp/chem-scene.mjs
+          node --check /tmp/chem-slides.js
+      - name: Commit fully merged single HTML for Render
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html index-before-biology-school-intro.html
-          git diff --cached --quiet || (git commit -m "Use biology 3D school finale as chemistry intro" && git push)
+          git diff --cached --quiet || (git commit -m "Publish original school with 3D workshops, latest Turkey map and slides" && git push)
