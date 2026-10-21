@@ -1,0 +1,36 @@
+name: Build chemistry intro from biology finale
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/build-chemistry-intro.yml'
+      - 'scripts/build_school_intro.py'
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Embed original 3D school, portrait, and flag into chemistry site
+        run: python3 scripts/build_school_intro.py
+      - name: Verify merged project
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          a=Path('index-before-biology-school-intro.html').read_text()
+          b=Path('index.html').read_text()
+          assert len(b)>len(a)+200000
+          assert 'id="chemSchoolIntro"' in b
+          assert 'function finalSchool(' in b
+          assert 'id="turkiyeMap"' in b
+          assert 'id="startLab"' in b
+          assert 'data:image/png;base64,' in b
+          print('Verified chemistry laboratory, existing Turkey map and original biology 3D school')
+          PY
+      - name: Commit new homepage
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html index-before-biology-school-intro.html
+          git diff --cached --quiet || (git commit -m "Use biology 3D school finale as chemistry intro" && git push)
