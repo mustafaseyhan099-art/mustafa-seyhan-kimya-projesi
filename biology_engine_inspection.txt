@@ -1,0 +1,16 @@
+858157 Bu 3D proje için tarayıcınızda JavaScript açık olmalıdır.</noscript></div></div><script> window.atlasStartupError=function(message){if(!document.body.hasAttribute('data-startup'))return;window.atlasBootFailed=true;docume
+858938  hazırlanıyor…';document.getElementById('startupRetry').hidden=false;}},30000); </script><header><small>İPOSB PANCAR MTAL</small><h1>İnsan Anatomisi • Sistemleri Keşfet</h1><p>Muhammed Mustafa SEYHAN ve İlyas BİRİCİK’in 
+872931 here are adaptations of the Z-Anatomy meshes, produced by a    headless Blender export (tools/asset-pipeline/): conversion from .blend to    glTF binary, Blender modifiers baked into the exported geometry, lossy Draco   
+880919 the Z-Anatomy repository for those notices.  Vanatome’s adaptations include web export, structure selection identifiers, material adjustments, curve-to-mesh conversion, and geometry optimization. When redistributing the 
+885748 ir. 3D modelde vurgulanan organ ile bu şema aynı aşamayı gösterir.</p></section><script>/* The MIT License  Copyright © 2010-2025 three.js authors  Permission is hereby granted, free of charge, to any person obtaining a 
+1557224  ut(){return I===null?H:1}let P=n;function ee(T,N){return t.getContext(T,N)}try{let T={alpha:!0,depth:i,stencil:s,antialias:a,premultipliedAlpha:c,preserveDrawingBuffer:l,powerPreference:h,failIfMajorPerformanceCaveat:u}
+1558672 es=function(){return P.getContextAttributes()},this.forceContextLoss=function(){let T=$.get("WEBGL_lose_context");T&&T.loseContext()},this.forceContextRestore=function(){let T=$.get("WEBGL_lose_context");T&&T.restoreCont
+1558762 t("WEBGL_lose_context");T&&T.loseContext()},this.forceContextRestore=function(){let T=$.get("WEBGL_lose_context");T&&T.restoreContext()},this.getPixelRatio=function(){return H},this.setPixelRatio=function(T){T!==void 0&&
+1561578 ),A=!0}function be(){console.log("THREE.WebGLRenderer: Context Restored."),A=!1;let T=he.autoReset,N=Ae.enabled,B=Ae.autoUpdate,k=Ae.needsUpdate,U=Ae.type;D(),he.autoReset=T,Ae.enabled=N,Ae.autoUpdate=B,Ae.needsUpdate=k,
+1657131 Copyright 2010-2025 Three.js Authors    * SPDX-License-Identifier: MIT    *) */ </script><script type="module"> const {T,OrbitControls,GLTFLoader,DRACOLoader}=globalThis.Biology3D; const $=id=>document.getElementById(id)
+1657140  2010-2025 Three.js Authors    * SPDX-License-Identifier: MIT    *) */ </script><script type="module"> const {T,OrbitControls,GLTFLoader,DRACOLoader}=globalThis.Biology3D; const $=id=>document.getElementById(id),scene=ne
+5895467 anatomi dosyası yüklenemedi. Bağlantınızı kontrol ederek yeniden deneyin.');};  </script><!-- Bundled font licenses Noto Hindi Copyright 2022 The Noto Project Authors (https://github.com/notofonts/devanagari)  This Font 
+FOUND school=2142798 opening JS context olorSpace;t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());return t}
+function finalCanvas(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);return c}
+// Exterior reference: https://www.iposb.com.tr/files/a28688c3-16cf-41c8-abbd-ecb3263e5df8.jpeg
+// Proportional reconstruction from the official aerial photo, not a measured survey.
