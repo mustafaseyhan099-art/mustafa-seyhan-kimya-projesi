@@ -1,0 +1,29 @@
+name: Inspect inline 3D engine boundaries
+on:
+  push:
+    paths: ['.github/workflows/inspect-engine.yml']
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          python3 - <<'PY'
+          import urllib.request,re,pathlib
+          u='https://raw.githubusercontent.com/mustafaseyhan099-art/Mustafa-seyhan-biyoloji-projesi/main/index.html'
+          with urllib.request.urlopen(u,timeout=30) as r:s=r.read().decode()
+          o=[]
+          for m in re.finditer(r'<script[^>]*>|</script>|<script type="module"|\b(?:const|let|var) T\b|\bimport\b|\bexport\b|\bconst T=',s):
+           v=s[m.start()-80:m.start()+140].replace('\n',' ')
+           if any(k in v for k in ['script',' T=',' T ','export','import']):o.append(str(m.start())+' '+v[:220])
+          p=s.find('function finalSchool(')
+          o.append('FOUND school='+str(p)+' opening JS context '+s[p-400:p])
+          pathlib.Path('biology_engine_inspection.txt').write_text('\n'.join(o[:160]),encoding='utf8')
+          PY
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add biology_engine_inspection.txt
+          git diff --cached --quiet || (git commit -m "Inspect embedded 3D engine boundary" && git push)
