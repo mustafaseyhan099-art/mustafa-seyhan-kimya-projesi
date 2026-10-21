@@ -1,0 +1,36 @@
+name: Inspect biology finale for chemistry intro
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/inspect-biology-finale.yml'
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect exact biology finale source
+        run: |
+          python3 - <<'PY'
+          import urllib.request,re,pathlib,json
+          url='https://raw.githubusercontent.com/mustafaseyhan099-art/Mustafa-seyhan-biyoloji-projesi/main/index.html'
+          with urllib.request.urlopen(url,timeout=30) as resp: s=resp.read().decode('utf8')
+          words=['final','okul','school','campus','flag','bayrak','mustafa','ending','outro','graduation','sceneFinal','finalScene','intro','background','finale']
+          lines=s.splitlines()
+          result=['HTML size: '+str(len(s))+'; lines: '+str(len(lines))]
+          for word in words:
+            hits=[i for i,line in enumerate(lines) if re.search(word,line,re.I)]
+            result.append('\n=== '+word+': '+str(len(hits))+' hits ===')
+            for i in hits[-15:]:
+              line=lines[i]
+              result.append(str(i+1)+': '+line[:450])
+          pathlib.Path('biology_finale_inspection.txt').write_text('\n'.join(result),encoding='utf8')
+          PY
+      - name: Commit inspection
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add biology_finale_inspection.txt
+          git diff --cached --quiet || (git commit -m "Inspect biology finale for chemistry intro" && git push)
